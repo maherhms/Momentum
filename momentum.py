@@ -8,26 +8,22 @@ def main(page: Page):
     width = 400
     height = 850
 
-    def route_change(route):
-        page.views.clear()
-        page.views.append(
-            View(
-                "/",
-                [
-                    container
-                ],
-            ),
+    # Define the initial route if it's not set
+    initial_route = '/'
+    if not page.route:
+        page.route = initial_route  # Set default route if none is set
+
+    create_task_view = Container(
+        content=Container(on_click=lambda _: page.go('/'),
+            height=40,width=40,
+            content=Text('X')
         )
-
-    create_task_view = Container()
-
-    tasks= Column()
-
-    categories_card= Row(
-        scroll='auto',
     )
 
-    categories=['Business', 'Family', 'Friends']
+    tasks = Column()
+    categories_card = Row(scroll='auto')
+    categories = ['Business', 'Family', 'Friends']
+
     for i, category in enumerate(categories):
         categories_card.controls.append(
             Container(
@@ -45,7 +41,7 @@ def main(page: Page):
                             height=5,
                             bgcolor='white12',
                             border_radius=15,
-                            padding=padding.only(right=i*30,),
+                            padding=padding.only(right=i*30),
                             content=Container(
                                 bgcolor=PINK,
                                 border_radius=15
@@ -56,15 +52,13 @@ def main(page: Page):
             )
         )
 
-    first_page_contents= Container(
+    first_page_contents = Container(
         content=Column(
             controls=[
-                Row(alignment='spaceBetween',
-                
+                Row(
+                    alignment='spaceBetween',
                     controls=[
-                        Container(
-                            content=Icon(
-                                icons.MENU)),
+                        Container(content=Icon(icons.MENU)),
                         Row(
                             controls=[
                                 Icon(icons.SEARCH),
@@ -73,14 +67,10 @@ def main(page: Page):
                         )
                     ]
                 ),
-                Text(
-                    value='What\'s up, Olivia!'
-                ),
-                Text(
-                    value='CATEGORIES'
-                ),
+                Text(value="What's up, Olivia!"),
+                Text(value='CATEGORIES'),
                 Container(
-                    padding=padding.only(top=10,bottom=20,),
+                    padding=padding.only(top=10, bottom=20),
                     content=categories_card
                 ),
                 Container(height=5),
@@ -88,60 +78,51 @@ def main(page: Page):
                 Stack(
                     controls=[
                         tasks,
-                        FloatingActionButton(icon=icons.ADD, on_click=lambda _: pages.go
-                                             ('/create_task')
+                        FloatingActionButton(
+                            icon=icons.ADD, on_click=lambda _: page.go('/create_task')
                         )
                     ]
                 )
             ],
         ),
     )
-    
 
-    # page_1 = container()
     page_2 = Row(
         controls=[
             Container(
                 width=width,
                 height=height,
-                bgcolor = FG,
+                bgcolor=FG,
                 border_radius=30,
-                padding= padding.only(top =50, left =20,right =20, bottom =5),
-                content= Column(controls=[
-                    first_page_contents
-                ])
+                padding=padding.only(top=50, left=20, right=20, bottom=5),
+                content=Column(controls=[first_page_contents])
             )
         ]
     )
-    container = Container(width=width, 
-                          height=height , 
-                          bgcolor=BG,
-                          border_radius = 30,
-                          content = Stack(
-                              controls=[
-                                #   page_1,
-                                  page_2,
-                              ])
+
+    container = Container(
+        width=width,
+        height=height,
+        bgcolor=BG,
+        border_radius=30,
+        content=Stack(controls=[page_2])
     )
 
-    pages={
-        '/':View(
-                "/",
-                [
-                    container
-                ],
-            ),
-            '/create_task': View(
-                '/Create_task',
-                [
-                    create_task_view
-                ],
-            )
+    pages = {
+        '/': container,
+        '/create_task': create_task_view
     }
 
-    page.add(container)
+    def route_change(route):
+        page.controls.clear()  # Clear the current page controls
+        if page.route in pages:
+            page.add(pages[page.route])  # Add the new view based on the current route
+        else:
+            page.add(pages['/'])  # Fallback to the default view if the route is undefined
+        page.update()
 
     page.on_route_change = route_change
-    page.go(page.route)
+    page.add(pages[page.route])  # Add the initial view based on the current route
+    page.go(page.route)  # Navigate to the initial or current route
 
 app(target=main)
