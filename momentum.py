@@ -72,12 +72,35 @@ def main(page: Page):
     if not page.route:
         page.route = initial_route  # Set default route if none is set
 
-    create_task_view = Container(
-        content=Container(on_click=lambda _: page.go('/'),
-            height=40,width=40,
-            content=Text('X')
+    # Initialize the list to store tasks
+    tasks_data = ["first test"]
+
+    def add_task(e, task_input):
+        # Append the text from TextField to the tasks_data list
+        tasks_data.append(task_input.value)
+        # Clear the input field if needed
+        print(tasks_data)
+        create_task()
+        page.go('/')
+
+    def create_task_view():
+        create_task_view = Container(
+            content=Column(
+                controls=[
+                    TextField(hint_text="Enter task description", width=300),  # Text field for entering tasks
+                    ElevatedButton(
+                        text="Add Task",
+                        on_click=(lambda e: add_task(e, e.control.parent.controls[0])),  # Assuming TextField is the first control in the parent container
+                        width=300
+                    ),
+                    Container(on_click=lambda _: page.go('/'),
+                            height=40, width=40,
+                            content=Text('X')
+                    )
+                ]
+            )
         )
-    )
+        return create_task_view
 
     tasks = Column(
         height=400,
@@ -87,17 +110,19 @@ def main(page: Page):
         # ]
     )
 
-    for i in range(10):
-        tasks.controls.append(
-            Container(height=70,
-                      width=400,
-                      bgcolor=BG, 
-                      border_radius=15,
-                      padding=padding.only(left=20,top=25,),
-                      content=CustomCheckBox(PINK, 
-                                             label=('Create Interesting content!')
-                        )),
-        )
+    def create_task():
+        tasks.controls.clear()
+        for task in tasks_data:
+            tasks.controls.append(
+                Container(height=70,
+                        width=400,
+                        bgcolor=BG, 
+                        border_radius=15,
+                        padding=padding.only(left=20,top=25,),
+                        content=CustomCheckBox(PINK, 
+                                                label=(task)
+                            )),
+            )
 
     categories_card = Row(scroll='auto')
     categories = ['Business', 'Family', 'Friends']
@@ -157,7 +182,7 @@ def main(page: Page):
                 Stack(
                     controls=[
                         tasks,
-                        FloatingActionButton( bottom=2,right=20,
+                        FloatingActionButton( #bottom=2,right=20,
                             icon=icons.ADD, on_click=lambda _: page.go('/create_task')
                         )
                     ]
@@ -245,8 +270,10 @@ def main(page: Page):
 
     pages = {
         '/': container,
-        '/create_task': create_task_view
+        '/create_task': create_task_view()
     }
+
+    create_task()
 
     def route_change(route):
         page.controls.clear()  # Clear the current page controls
