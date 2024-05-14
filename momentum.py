@@ -85,18 +85,26 @@ def main(page: Page):
 
     def create_task_view():
         create_task_view = Container(
+            width=width,
+            height=height,
+            bgcolor=FG,
+            border_radius=30,
+            alignment=alignment.center,
+            padding=padding.only(top=20,),
             content=Column(
                 controls=[
+                    IconButton(on_click=lambda _: page.go('/'),
+                                icon=icons.CLOSE,
+                                height=40, width=40,
+                    ),
                     TextField(hint_text="Enter task description", width=300),  # Text field for entering tasks
-                    ElevatedButton(
+                    FloatingActionButton(
+                        icon=icons.ADD,
                         text="Add Task",
                         on_click=(lambda e: add_task(e, e.control.parent.controls[0])),  # Assuming TextField is the first control in the parent container
-                        width=300
+                        width=300,
+                        height=35
                     ),
-                    Container(on_click=lambda _: page.go('/'),
-                            height=40, width=40,
-                            content=Text('X')
-                    )
                 ]
             )
         )
@@ -182,7 +190,9 @@ def main(page: Page):
                 Stack(
                     controls=[
                         tasks,
-                        FloatingActionButton( #bottom=2,right=20,
+                        FloatingActionButton( 
+                            right=0,
+                            bottom=0,
                             icon=icons.ADD, on_click=lambda _: page.go('/create_task')
                         )
                     ]
