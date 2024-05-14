@@ -99,9 +99,8 @@ def main(page: Page):
                     ),
                     TextField(hint_text="Enter task description", width=300),  # Text field for entering tasks
                     FloatingActionButton(
-                        icon=icons.ADD,
                         text="Add Task",
-                        on_click=(lambda e: add_task(e, e.control.parent.controls[0])),  # Assuming TextField is the first control in the parent container
+                        on_click=(lambda e: add_task(e, e.control.parent.controls[1])),  # Assuming TextField is the first control in the parent container
                         width=300,
                         height=35
                     ),
@@ -212,14 +211,12 @@ def main(page: Page):
             controls=[
                 Row(alignment='end',
                     controls=[
-                        Container(
-                        border_radius=25,
-                        padding=padding.only(top=13,left=13),
-                        height=50,
-                        width=50,
-                        border=border.all(color='white',width=1),
-                        on_click=lambda e: restore(e),
-                        content=Text('<'),
+                        IconButton(
+                            icon=icons.KEYBOARD_DOUBLE_ARROW_LEFT,
+                            padding=padding.only(top=13,left=13),
+                            height=50,
+                            width=50,
+                            on_click=lambda e: restore(e),
                         )
                     ]
                 ),
