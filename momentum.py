@@ -6,7 +6,7 @@ def main(page: Page):
     BG = '#041955'
     FWG = '#97b4ff'
     FG = '#3450a1'
-    PINK = '#eb06ff'
+    PINK = '#red50'
     width = 400
     height = 850
 
@@ -126,7 +126,7 @@ def main(page: Page):
                         bgcolor=BG, 
                         border_radius=15,
                         padding=padding.only(left=20,top=25,),
-                        content=CustomCheckBox(PINK, 
+                        content=CustomCheckBox(color='red50',
                                                 label=(task)
                             )),
             )
@@ -239,7 +239,7 @@ def main(page: Page):
                 Text('Templates',size=15,weight=FontWeight.W_300,color='white',font_family='poppins')
                 ]),
 
-                Image(src=f"Asset\Chart.png",
+                Image(src=f"",
                 width=300,
                 height=200,
                 ),
