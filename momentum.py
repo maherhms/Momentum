@@ -10,11 +10,22 @@ def main(page: Page):
     width = 400
     height = 850
 
-    tasks_data = [{"id": str(uuid.uuid4()), "label": "first test"}]
+    categories = [
+        {"label": 'Business', "icon": icons.BUSINESS_ROUNDED},
+        {"label": 'Family', "icon": icons.SCHOOL_ROUNDED},
+        {"label": 'Home', "icon": icons.HOUSE_ROUNDED}
+    ]
+    
+    tasks_data = [{"id": str(uuid.uuid4()), "label": "first test", "category": categories[0]}]
+    selected_category = categories[0]
 
     categories_card = Row(scroll='auto')
     categories_list = Row(scroll='auto')
-    categories = [{"label":'Business',"icon":icons.BUSINESS_ROUNDED}, {"label":'Family',"icon":icons.SCHOOL_ROUNDED}, {"label":'Home',"icon":icons.HOUSE_ROUNDED}]
+
+    def select_category(e, category):
+        nonlocal selected_category
+        selected_category = category
+        print(f"Category chosen: {category['label']}")
 
     circle = Stack(
         controls=[
@@ -84,7 +95,7 @@ def main(page: Page):
 
     def add_task(e, task_input):
         task_id = str(uuid.uuid4())
-        tasks_data.append({"id": task_id, "label": task_input.value})
+        tasks_data.append({"id": task_id, "label": task_input.value, "category": selected_category})
         print(tasks_data)
         create_task()
         page.go('/')
@@ -116,7 +127,7 @@ def main(page: Page):
                     FloatingActionButton(
                         text="Add Task",
                         bgcolor=FWG,
-                        on_click=(lambda e: add_task(e, e.control.parent.controls[1])),
+                        on_click=(lambda e: add_task(e, e.control.parent.controls[2])),
                         width=300,
                         height=35
                     ),
@@ -138,9 +149,10 @@ def main(page: Page):
         for task in tasks_data:
             task_id = task["id"]
             task_label = task["label"]
+            task_category = task["category"]
             checkbox = CustomCheckBox(
                 color=WHITE,
-                label=task_label,
+                label=f"{task_category['label']}: {task_label} ",
                 taskDelete=lambda e, task_id=task_id: delete_task(e, task_id)  # Pass the task ID to delete_task
             )
             tasks.controls.append(
@@ -158,7 +170,7 @@ def main(page: Page):
         categories_list.controls.append(
             Container(
                 ink=True,
-                on_click=lambda e: print("Category chosen"),
+                on_click=lambda e, cat=category: select_category(e, cat),
                 border_radius=15,
                 bgcolor=BG,
                 height=75,
@@ -170,7 +182,7 @@ def main(page: Page):
                         IconButton(
                             icon=category["icon"],
                             selected_icon=category["icon"],
-                            on_click= lambda e: toggle_icon_button(e),
+                            on_click=lambda e: toggle_icon_button(e),
                             selected=False,
                             icon_color=WHITE,
                             style=ButtonStyle(color={"selected": colors.GREEN, "": colors.RED})
@@ -185,21 +197,13 @@ def main(page: Page):
             Container(
                 border_radius=15,
                 bgcolor=BG,
-                height=150,
+                height=110,
                 width=170,
                 padding=15,
                 content=Column(
                     controls=[
                         Text('40 Tasks'),
                         Text(category["label"]),
-                        IconButton(
-                            icon=category["icon"],
-                            selected_icon=category["icon"],
-                            on_click= lambda e: toggle_icon_button(e),
-                            selected=False,
-                            icon_color=WHITE,
-                            style=ButtonStyle(color={"selected": colors.GREEN, "": colors.RED})
-                        ),
                         Container(
                             width=160,
                             height=5,
@@ -223,13 +227,13 @@ def main(page: Page):
                     alignment='spaceBetween',
                     controls=[
                         Container(
-                                  content=IconButton(icons.MENU,
-                                                     icon_color=WHITE,
-                                                     on_click=lambda e: shrink(e))),
+                            content=IconButton(icons.MENU,
+                                               icon_color=WHITE,
+                                               on_click=lambda e: shrink(e))),
                         Row(
                             controls=[
-                                IconButton(icons.SEARCH,icon_color=WHITE),
-                                IconButton(icons.NOTIFICATION_ADD_OUTLINED,icon_color=WHITE)
+                                IconButton(icons.SEARCH, icon_color=WHITE),
+                                IconButton(icons.NOTIFICATION_ADD_OUTLINED, icon_color=WHITE)
                             ]
                         )
                     ]
@@ -237,7 +241,7 @@ def main(page: Page):
                 Text(value="What's up, Olivia!"),
                 Text(value='CATEGORIES'),
                 Container(
-                    padding=padding.only(top=10),
+                    padding=padding.only(top=10, bottom=20),
                     content=categories_card
                 ),
                 Container(height=5),
@@ -245,13 +249,12 @@ def main(page: Page):
                 Stack(
                     controls=[
                         tasks,
-                        
                     ]
                 ),
                 FloatingActionButton(
-                            bgcolor=FWG,
-                            icon=icons.ADD, on_click=lambda _: page.go('/create_task')
-                        ),
+                    bgcolor=FWG,
+                    icon=icons.ADD, on_click=lambda _: page.go('/create_task')
+                ),
             ],
         ),
     )
