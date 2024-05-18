@@ -3,12 +3,18 @@ import uuid
 from CustomCheckBox import CustomCheckBox
 
 def main(page: Page):
-    BG = '#041955'
-    FWG = '#97b4ff'
-    FG = '#3450a1'
-    PINK = '#red50'
+    BG = '#723523'
+    FWG = '#5D4037'
+    FG = '#561F0F'
+    WHITE = '#ffffff'
     width = 400
     height = 850
+
+    tasks_data = [{"id": str(uuid.uuid4()), "label": "first test"}]
+
+    categories_card = Row(scroll='auto')
+    categories_list = Row(scroll='auto')
+    categories = [{"label":'Business',"icon":icons.BUSINESS_ROUNDED}, {"label":'Family',"icon":icons.SCHOOL_ROUNDED}, {"label":'Home',"icon":icons.HOUSE_ROUNDED}]
 
     circle = Stack(
         controls=[
@@ -24,7 +30,7 @@ def main(page: Page):
                     start_angle=0.0,
                     end_angle=3,
                     stops=[0.5, 0.5],
-                    colors=['#00000000', PINK],
+                    colors=['#00000000', WHITE],
                 ),
                 width=100,
                 height=100,
@@ -76,8 +82,6 @@ def main(page: Page):
     if not page.route:
         page.route = initial_route  # Set default route if none is set
 
-    tasks_data = [{"id": str(uuid.uuid4()), "label": "first test"}]
-
     def add_task(e, task_input):
         task_id = str(uuid.uuid4())
         tasks_data.append({"id": task_id, "label": task_input.value})
@@ -104,10 +108,14 @@ def main(page: Page):
                 controls=[
                     IconButton(on_click=lambda _: page.go('/'),
                                icon=icons.CLOSE,
-                               height=40, width=40),
+                               height=40, width=40,
+                               icon_color=WHITE,
+                               focus_color=WHITE),
+                    categories_list,
                     TextField(hint_text="Enter task description", width=300),
                     FloatingActionButton(
                         text="Add Task",
+                        bgcolor=FWG,
                         on_click=(lambda e: add_task(e, e.control.parent.controls[1])),
                         width=300,
                         height=35
@@ -115,6 +123,10 @@ def main(page: Page):
                 ]
             )
         )
+
+    def toggle_icon_button(e):
+        e.control.selected = not e.control.selected
+        e.control.update()
 
     tasks = Column(
         height=400,
@@ -127,7 +139,7 @@ def main(page: Page):
             task_id = task["id"]
             task_label = task["label"]
             checkbox = CustomCheckBox(
-                color='red50',
+                color=WHITE,
                 label=task_label,
                 taskDelete=lambda e, task_id=task_id: delete_task(e, task_id)  # Pass the task ID to delete_task
             )
@@ -142,21 +154,52 @@ def main(page: Page):
                 )
             )
 
-    categories_card = Row(scroll='auto')
-    categories = ['Business', 'Family', 'Friends']
+    for i, category in enumerate(categories):
+        categories_list.controls.append(
+            Container(
+                ink=True,
+                on_click=lambda e: print("Category chosen"),
+                border_radius=15,
+                bgcolor=BG,
+                height=75,
+                width=100,
+                padding=7,
+                content=Column(
+                    controls=[
+                        Text(category["label"]),
+                        IconButton(
+                            icon=category["icon"],
+                            selected_icon=category["icon"],
+                            on_click= lambda e: toggle_icon_button(e),
+                            selected=False,
+                            icon_color=WHITE,
+                            style=ButtonStyle(color={"selected": colors.GREEN, "": colors.RED})
+                        )
+                    ]
+                )
+            )
+        )
 
     for i, category in enumerate(categories):
         categories_card.controls.append(
             Container(
                 border_radius=15,
                 bgcolor=BG,
-                height=110,
+                height=150,
                 width=170,
                 padding=15,
                 content=Column(
                     controls=[
                         Text('40 Tasks'),
-                        Text(category),
+                        Text(category["label"]),
+                        IconButton(
+                            icon=category["icon"],
+                            selected_icon=category["icon"],
+                            on_click= lambda e: toggle_icon_button(e),
+                            selected=False,
+                            icon_color=WHITE,
+                            style=ButtonStyle(color={"selected": colors.GREEN, "": colors.RED})
+                        ),
                         Container(
                             width=160,
                             height=5,
@@ -164,7 +207,7 @@ def main(page: Page):
                             border_radius=15,
                             padding=padding.only(right=i * 30),
                             content=Container(
-                                bgcolor=PINK,
+                                bgcolor=WHITE,
                                 border_radius=15
                             ),
                         )
@@ -179,12 +222,14 @@ def main(page: Page):
                 Row(
                     alignment='spaceBetween',
                     controls=[
-                        Container(on_click=lambda e: shrink(e),
-                                  content=Icon(icons.MENU)),
+                        Container(
+                                  content=IconButton(icons.MENU,
+                                                     icon_color=WHITE,
+                                                     on_click=lambda e: shrink(e))),
                         Row(
                             controls=[
-                                Icon(icons.SEARCH),
-                                Icon(icons.NOTIFICATION_ADD_OUTLINED)
+                                IconButton(icons.SEARCH,icon_color=WHITE),
+                                IconButton(icons.NOTIFICATION_ADD_OUTLINED,icon_color=WHITE)
                             ]
                         )
                     ]
@@ -192,7 +237,7 @@ def main(page: Page):
                 Text(value="What's up, Olivia!"),
                 Text(value='CATEGORIES'),
                 Container(
-                    padding=padding.only(top=10, bottom=20),
+                    padding=padding.only(top=10),
                     content=categories_card
                 ),
                 Container(height=5),
@@ -204,6 +249,7 @@ def main(page: Page):
                     ]
                 ),
                 FloatingActionButton(
+                            bgcolor=FWG,
                             icon=icons.ADD, on_click=lambda _: page.go('/create_task')
                         ),
             ],
@@ -222,6 +268,7 @@ def main(page: Page):
                     controls=[
                         IconButton(
                             icon=icons.KEYBOARD_DOUBLE_ARROW_LEFT,
+                            icon_color=WHITE,
                             padding=padding.only(top=13, left=13),
                             height=50,
                             width=50,
