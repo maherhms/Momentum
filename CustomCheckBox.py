@@ -1,7 +1,7 @@
 from flet import *
 
 class CustomCheckBox(UserControl):
-    def __init__(self, color, label='', selection_fill='#183588', size=25, stroke_width=2, animation=None, checked=False, font_size=17, pressed=None):
+    def __init__(self, color, label='', selection_fill='#183588', size=25, stroke_width=2, animation=None, checked=False, font_size=17, pressed=None, taskDelete=None, taskEdit=None):
         super().__init__()
         self.selection_fill = selection_fill
         self.color = color
@@ -12,9 +12,9 @@ class CustomCheckBox(UserControl):
         self.checked = checked
         self.font_size = font_size
         self.pressed = pressed
-        self.delete_button = self.taskDeleteEdit(icons.DELETE_FOREVER_ROUNDED, 'red500', None)  # Removed self-deletion
+        self.delete_button = self.taskDeleteEdit(icons.DELETE_FOREVER_ROUNDED, 'red500', taskDelete)
         self.delete_button.opacity = 0  # Initially hide the button
-        self.edit_button = self.taskDeleteEdit(icons.EDIT_ROUNDED, 'white700', None)
+        self.edit_button = self.taskDeleteEdit(icons.EDIT_ROUNDED, 'white700', taskEdit)
         self.edit_button.opacity = 0
 
     def _checked(self):
@@ -77,7 +77,7 @@ class CustomCheckBox(UserControl):
             on_hover=lambda e: self.showIcons(e)  # Handle hover events
         )
 
-    def taskDeleteEdit(self, name, color, on_click_action):
+    def taskDeleteEdit(self, name, color, action):
         return IconButton(
             icon=name,
             alignment=alignment.center,
@@ -86,7 +86,7 @@ class CustomCheckBox(UserControl):
             icon_color=color,
             opacity=0,  # Start with the button hidden
             animate_opacity=200,
-            on_click=on_click_action
+            on_click=action
         )
 
     def showIcons(self, e):
