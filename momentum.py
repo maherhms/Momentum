@@ -5,7 +5,7 @@ from CustomCheckBox import CustomCheckBox
 def main(page: Page):
     BG = '#723523'
     FWG = '#5D4037'
-    FG = '#561F0F'
+    FG = '#271D1B'
     WHITE = '#ffffff'
     width = 400
     height = 850
@@ -14,7 +14,7 @@ def main(page: Page):
     category_colors = {
         "Business": "#6C5D2F",
         "Family": "#410002",
-        "Home": "#53433F"
+        "Home": "#55695F"
     }
 
     categories = [
@@ -23,7 +23,7 @@ def main(page: Page):
         {"label": 'Home', "icon": icons.HOUSE_ROUNDED}
     ]
     
-    tasks_data = [{"id": str(uuid.uuid4()), "label": "first test", "category": categories[0]}]
+    tasks_data = [{"id": str(uuid.uuid4()), "label": "first test", "category": categories[0], "checked": False}]
     selected_category = categories[0]
 
     categories_card = Row(scroll='auto')
@@ -102,7 +102,7 @@ def main(page: Page):
 
     def add_task(e, task_input):
         task_id = str(uuid.uuid4())
-        tasks_data.append({"id": task_id, "label": task_input.value, "category": selected_category})
+        tasks_data.append({"id": task_id, "label": task_input.value, "category": selected_category, "checked": False})
         print(tasks_data)
         create_task()
         page.go('/')  # Navigate back to the main page
@@ -115,6 +115,14 @@ def main(page: Page):
         update_category_task_counts()  # Update task counts after deleting a task
         page.update()
         print(f"Deleted task {task_id}")
+
+    def toggle_task(task_id, checked):
+        for task in tasks_data:
+            if task["id"] == task_id:
+                task["checked"] = checked
+                break
+        print(tasks_data)  # Debugging output to see the state change
+        update_category_task_counts()  # Update task counts when a task is toggled
 
     def create_task_view():
         return Container(
@@ -159,10 +167,14 @@ def main(page: Page):
             task_id = task["id"]
             task_label = task["label"]
             task_category = task["category"]
+            task_checked = task["checked"]
             checkbox = CustomCheckBox(
                 color=WHITE,
-                label=f"{task_label} [{task_category['label']}]",
-                taskDelete=lambda e, task_id=task_id: delete_task(e, task_id)  # Pass the task ID to delete_task
+                label=task_label,
+                icon=Icon(task_category["icon"], color=WHITE),  # Pass the category icon to the CustomCheckBox
+                checked=task_checked,
+                taskDelete=lambda e, task_id=task_id: delete_task(e, task_id),  # Pass the task ID to delete_task
+                on_toggle=lambda checked, task_id=task_id: toggle_task(task_id, checked)  # Pass the task ID and checked state to toggle_task
             )
             tasks.controls.append(
                 Container(
@@ -178,10 +190,20 @@ def main(page: Page):
     def count_tasks_by_category(category_label):
         return len([task for task in tasks_data if task['category']['label'] == category_label])
 
+    def count_checked_tasks_by_category(category_label):
+        return len([task for task in tasks_data if task['category']['label'] == category_label and task['checked']])
+
     def update_category_task_counts():
         categories_card.controls.clear()
         for i, category in enumerate(categories):
-            task_count = count_tasks_by_category(category["label"])
+            total_tasks = count_tasks_by_category(category["label"])
+            if total_tasks == 0:
+                continue  # Skip categories with no tasks
+            checked_tasks = count_checked_tasks_by_category(category["label"])
+            task_count = f'{checked_tasks}/{total_tasks} Tasks'
+            progress_ratio = checked_tasks / total_tasks if total_tasks > 0 else 0
+            progress_width = 160 * progress_ratio  # Calculate width based on the ratio
+
             categories_card.controls.append(
                 Container(
                     border_radius=15,
@@ -191,17 +213,17 @@ def main(page: Page):
                     padding=15,
                     content=Column(
                         controls=[
-                            Text(f'{task_count} Tasks'),
+                            Text(task_count),
                             Text(category["label"]),
                             Container(
                                 width=160,
                                 height=5,
-                                bgcolor='white12',
+                                bgcolor=category_colors[category['label']],
                                 border_radius=15,
-                                padding=padding.only(right=i * 30),
+                                padding=padding.only(progress_width),  # Dynamically set the width based on progress
                                 content=Container(
-                                    bgcolor=WHITE,
-                                    border_radius=15
+                                    bgcolor="#53433F",
+                                    border_radius=15,
                                 ),
                             )
                         ]
