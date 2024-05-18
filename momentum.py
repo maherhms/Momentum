@@ -10,6 +10,13 @@ def main(page: Page):
     width = 400
     height = 850
 
+    # Define colors for each category
+    category_colors = {
+        "Business": "#6C5D2F",
+        "Family": "#410002",
+        "Home": "#53433F"
+    }
+
     categories = [
         {"label": 'Business', "icon": icons.BUSINESS_ROUNDED},
         {"label": 'Family', "icon": icons.SCHOOL_ROUNDED},
@@ -62,7 +69,7 @@ def main(page: Page):
                                 border_radius=40,
                                 content=CircleAvatar(
                                     opacity=0.8,
-                                    foreground_image_url="https://images.unsplash.com/photo-1545912452-8aea7e25a3d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+                                    foreground_image_src="https://images.unsplash.com/photo-1545912452-8aea7e25a3d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
                                 )
                             )
                         )
@@ -98,12 +105,14 @@ def main(page: Page):
         tasks_data.append({"id": task_id, "label": task_input.value, "category": selected_category})
         print(tasks_data)
         create_task()
-        page.go('/')
+        page.go('/')  # Navigate back to the main page
+        update_category_task_counts()  # Update task counts after adding a task
 
     def delete_task(e, task_id):
         nonlocal tasks_data  # Ensure tasks_data is correctly referenced
         tasks_data = [task for task in tasks_data if task["id"] != task_id]
         create_task()
+        update_category_task_counts()  # Update task counts after deleting a task
         page.update()
         print(f"Deleted task {task_id}")
 
@@ -152,19 +161,54 @@ def main(page: Page):
             task_category = task["category"]
             checkbox = CustomCheckBox(
                 color=WHITE,
-                label=f"{task_category['label']}: {task_label} ",
+                label=f"{task_label} [{task_category['label']}]",
                 taskDelete=lambda e, task_id=task_id: delete_task(e, task_id)  # Pass the task ID to delete_task
             )
             tasks.controls.append(
                 Container(
                     height=70,
                     width=400,
-                    bgcolor=BG,
+                    bgcolor=category_colors[task_category['label']],  # Set container color based on category
                     border_radius=15,
                     padding=padding.only(left=20, top=25),
                     content=checkbox,
                 )
             )
+
+    def count_tasks_by_category(category_label):
+        return len([task for task in tasks_data if task['category']['label'] == category_label])
+
+    def update_category_task_counts():
+        categories_card.controls.clear()
+        for i, category in enumerate(categories):
+            task_count = count_tasks_by_category(category["label"])
+            categories_card.controls.append(
+                Container(
+                    border_radius=15,
+                    bgcolor=BG,
+                    height=110,
+                    width=170,
+                    padding=15,
+                    content=Column(
+                        controls=[
+                            Text(f'{task_count} Tasks'),
+                            Text(category["label"]),
+                            Container(
+                                width=160,
+                                height=5,
+                                bgcolor='white12',
+                                border_radius=15,
+                                padding=padding.only(right=i * 30),
+                                content=Container(
+                                    bgcolor=WHITE,
+                                    border_radius=15
+                                ),
+                            )
+                        ]
+                    )
+                )
+            )
+        categories_card.update()
 
     for i, category in enumerate(categories):
         categories_list.controls.append(
@@ -186,34 +230,6 @@ def main(page: Page):
                             selected=False,
                             icon_color=WHITE,
                             style=ButtonStyle(color={"selected": colors.GREEN, "": colors.RED})
-                        )
-                    ]
-                )
-            )
-        )
-
-    for i, category in enumerate(categories):
-        categories_card.controls.append(
-            Container(
-                border_radius=15,
-                bgcolor=BG,
-                height=110,
-                width=170,
-                padding=15,
-                content=Column(
-                    controls=[
-                        Text('40 Tasks'),
-                        Text(category["label"]),
-                        Container(
-                            width=160,
-                            height=5,
-                            bgcolor='white12',
-                            border_radius=15,
-                            padding=padding.only(right=i * 30),
-                            content=Container(
-                                bgcolor=WHITE,
-                                border_radius=15
-                            ),
                         )
                     ]
                 )
@@ -344,6 +360,8 @@ def main(page: Page):
         page.controls.clear()  # Clear the current page controls
         if page.route in pages:
             page.add(pages[page.route])  # Add the new view based on the current route
+            if route == '/':  # Ensure task counts are updated only when viewing the main page
+                update_category_task_counts()
         else:
             page.add(pages['/'])  # Fallback to the default view if the route is undefined
         page.update()
@@ -351,5 +369,8 @@ def main(page: Page):
     page.on_route_change = route_change
     page.add(pages[page.route])  # Add the initial view based on the current route
     page.go(page.route)  # Navigate to the initial or current route
+
+    # Update category task counts after controls are added to the page
+    update_category_task_counts()
 
 app(target=main)
