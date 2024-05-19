@@ -5,7 +5,7 @@ from CustomCheckBox import CustomCheckBox
 def main(page: Page):
     BG = '#723523'
     FWG = '#5D4037'
-    FG = '#271D1B'
+    FG = '#1A110F'
     WHITE = '#ffffff'
     width = 400
     height = 850
@@ -13,8 +13,8 @@ def main(page: Page):
     # Define colors for each category
     category_colors = {
         "Business": "#6C5D2F",
-        "Family": "#410002",
-        "Home": "#55695F"
+        "Family": "#55695F",
+        "Home": "#4E4216"
     }
 
     categories = [
@@ -25,6 +25,7 @@ def main(page: Page):
     
     tasks_data = [{"id": str(uuid.uuid4()), "label": "first test", "category": categories[0], "checked": False}]
     selected_category = categories[0]
+    task_to_edit = None
 
     categories_card = Row(scroll='auto')
     categories_list = Row(scroll='auto')
@@ -108,6 +109,26 @@ def main(page: Page):
         page.go('/')  # Navigate back to the main page
         update_category_task_counts()  # Update task counts after adding a task
 
+    def edit_task(task_id):
+        global task_to_edit
+        task = next(task for task in tasks_data if task["id"] == task_id)
+        task_description_input.value = task["label"]
+        selected_category = task["category"]
+        task_to_edit = task_id
+        page.go('/edit_task')
+
+    def update_task(e, task_input):
+        global task_to_edit
+        for task in tasks_data:
+            if task["id"] == task_to_edit:
+                task["label"] = task_input.value
+                task["category"] = selected_category
+                break
+        print(tasks_data)
+        create_task()
+        page.go('/')  # Navigate back to the main page
+        update_category_task_counts()  # Update task counts after updating a task
+
     def delete_task(e, task_id):
         nonlocal tasks_data  # Ensure tasks_data is correctly referenced
         tasks_data = [task for task in tasks_data if task["id"] != task_id]
@@ -122,7 +143,9 @@ def main(page: Page):
                 task["checked"] = checked
                 break
         print(tasks_data)  # Debugging output to see the state change
-        update_category_task_counts()  # Update task counts when a task is toggled
+        update_category_task_counts()  # Update task counts when a task is checked/unchecked
+
+    task_description_input = TextField(hint_text="Enter task description", width=300)
 
     def create_task_view():
         return Container(
@@ -140,11 +163,39 @@ def main(page: Page):
                                icon_color=WHITE,
                                focus_color=WHITE),
                     categories_list,
-                    TextField(hint_text="Enter task description", width=300),
+                    task_description_input,
                     FloatingActionButton(
                         text="Add Task",
                         bgcolor=FWG,
-                        on_click=(lambda e: add_task(e, e.control.parent.controls[2])),
+                        on_click=(lambda e: add_task(e, task_description_input)),
+                        width=300,
+                        height=35
+                    ),
+                ]
+            )
+        )
+
+    def create_edit_task_view():
+        return Container(
+            width=width,
+            height=height,
+            bgcolor=FG,
+            border_radius=30,
+            alignment=alignment.center,
+            padding=padding.only(top=20,),
+            content=Column(
+                controls=[
+                    IconButton(on_click=lambda _: page.go('/'),
+                               icon=icons.CLOSE,
+                               height=40, width=40,
+                               icon_color=WHITE,
+                               focus_color=WHITE),
+                    categories_list,
+                    task_description_input,
+                    FloatingActionButton(
+                        text="Update Task",
+                        bgcolor=FWG,
+                        on_click=(lambda e: update_task(e, task_description_input)),
                         width=300,
                         height=35
                     ),
@@ -174,7 +225,8 @@ def main(page: Page):
                 icon=Icon(task_category["icon"], color=WHITE),  # Pass the category icon to the CustomCheckBox
                 checked=task_checked,
                 taskDelete=lambda e, task_id=task_id: delete_task(e, task_id),  # Pass the task ID to delete_task
-                on_toggle=lambda checked, task_id=task_id: toggle_task(task_id, checked)  # Pass the task ID and checked state to toggle_task
+                on_toggle=lambda checked, task_id=task_id: toggle_task(task_id, checked),  # Pass the task ID and checked state to toggle_task
+                on_edit=lambda e, task_id=task_id: edit_task(task_id)  # Pass the task ID to edit_task
             )
             tasks.controls.append(
                 Container(
@@ -373,7 +425,8 @@ def main(page: Page):
 
     pages = {
         '/': container,
-        '/create_task': create_task_view()
+        '/create_task': create_task_view(),
+        '/edit_task': create_edit_task_view()
     }
 
     create_task()

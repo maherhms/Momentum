@@ -1,25 +1,22 @@
 from flet import *
 
 class CustomCheckBox(UserControl):
-    def __init__(self, color, label='', icon=None, selection_fill='#392E2B', size=25, stroke_width=2, animation=None, checked=False, font_size=17, pressed=None, taskDelete=None, taskEdit=None, on_toggle=None):
+    def __init__(self, color, label='', icon=None, selection_fill='#51313F', size=25, stroke_width=2, animation=None, checked=False, font_size=17, taskDelete=None, on_toggle=None, on_edit=None):
         super().__init__()
         self.selection_fill = selection_fill
         self.color = color
         self.label = label
-        self.icon = icon  # Add icon parameter
+        self.icon = icon
         self.size = size
         self.stroke_width = stroke_width
         self.animation = animation
-        self.checked = checked  # Track checked state
+        self.checked = checked
         self.font_size = font_size
-        self.pressed = pressed
         self.taskDelete = taskDelete
-        self.taskEdit = taskEdit
-        self.on_toggle = on_toggle  # Callback for toggle event
+        self.on_toggle = on_toggle
+        self.on_edit = on_edit
         self.delete_button = self.taskDeleteEdit(icons.DELETE_FOREVER_ROUNDED, 'red500', taskDelete)
-        self.delete_button.opacity = 0  # Initially hide the button
-        self.edit_button = self.taskDeleteEdit(icons.EDIT_ROUNDED, 'white700', taskEdit)
-        self.edit_button.opacity = 0
+        self.edit_button = self.taskDeleteEdit(icons.EDIT_ROUNDED, 'white700', on_edit)
 
     def _checked(self):
         self.check_box = Container(
@@ -28,7 +25,7 @@ class CustomCheckBox(UserControl):
             height=self.size,  # Ensure the height is the same as size
             border_radius=(self.size / 2) + 5,
             bgcolor=self.selection_fill,
-            content=Icon(icons.CHECK_ROUNDED, size=15),
+            content=Icon(icons.CHECK_ROUNDED, color="#ffffff", size=15),
             alignment=alignment.center  # Center the icon within the container
         )
         return self.check_box
@@ -56,7 +53,7 @@ class CustomCheckBox(UserControl):
                     vertical_alignment=CrossAxisAlignment.CENTER,
                     controls=[
                         self._checked() if self.checked else self._unchecked(),
-                        self.icon,  # Display the icon
+                        self.icon,
                         Text(
                             self.label,
                             font_family='poppins',
@@ -104,15 +101,10 @@ class CustomCheckBox(UserControl):
         self.checked = not self.checked
         self.check_box.border = None if self.checked else border.all(color=self.color, width=self.stroke_width)
         self.check_box.bgcolor = self.selection_fill if self.checked else None
-        self.check_box.content = Icon(icons.CHECK_ROUNDED,
-                                       color="#ffffff",
-                                       size=15) if self.checked else Container()
+        self.check_box.content = Icon(icons.CHECK_ROUNDED, color="#ffffff" ,size=15) if self.checked else Container()
         self.update()
         if self.on_toggle:
-            self.on_toggle(self.checked)  # Call the toggle callback
+            self.on_toggle(self.checked)
 
     def is_checked(self):
         return self.checked
-
-    def run(self, *args):
-        self.pressed(args)
