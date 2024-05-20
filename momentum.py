@@ -328,7 +328,7 @@ def main(page: Page):
                         )
                     ]
                 ),
-                Text(value="What's up, Olivia!"),
+                Text(value="What's up, User!"),
                 Text(value='CATEGORIES'),
                 Container(
                     padding=padding.only(top=10, bottom=20),
